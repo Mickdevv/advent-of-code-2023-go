@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strconv"
+	"strings"
 )
 
 type partNumber struct {
@@ -38,10 +39,10 @@ func main() {
 	LINE_LENGTH := len(slice[0])
 	LINE_COUNT := len(slice)
 
-	// NEED TO EXTRACT EACH NUMBER FROM THE LINE HERE
 	for lineNumber, line := range slice {
+		splitLine := strings.Split(removeSymbols(line), ".")
 		indexOffset := 0
-		for i, v := range line {
+		for i, v := range splitLine {
 			n, err := strconv.Atoi(v)
 			if err == nil {
 				partNumber := partNumber{value: n, start: i + indexOffset, end: i + indexOffset + len(v), lineNumber: lineNumber}
@@ -85,7 +86,7 @@ func main() {
 		}
 	}
 
-	ln := 3
+	ln := 2
 
 	for _, part := range partNumbers {
 		if part.lineNumber == ln {
@@ -108,10 +109,21 @@ func checkForSymbols(str string) bool{
 	return false
 }
 
-func isNumber(c string) bool {
-	if _, err := strconv.Atoi(string(c)); err == nil {
-		return true
-	} else {
-		return false
+func isNumber(str string) bool {
+	_, err := strconv.Atoi(str)
+	return err == nil
+}
+
+func removeSymbols(str string) string {
+	newString := ""
+
+	for _, c := range str {
+		if !isNumber(string(c)) {
+			newString = newString + "."
+		} else {
+			newString = newString + string(c)
+		}
 	}
+
+	return newString
 }
