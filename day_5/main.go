@@ -15,6 +15,7 @@ type MapTable struct {
 	table [][4]int
 }
 
+
 func main() {
 	file, err := os.Open("day_5/input.txt")
 	// file, err := os.Open("day_5/input_test.txt")
@@ -24,19 +25,17 @@ func main() {
 	scanner := bufio.NewScanner(file)
 	
 	var seeds []int
+	var seedsP2 [][2]int
 	var maps []MapTable
 	lineCount := 0
 	
 	scanner.Scan()
 	line := scanner.Text()
-	// fmt.Println(line)
-	
 	for _, v := range strings.Split(strings.Split(line, ": ")[1], " ") {
 		v_int, _ := strconv.Atoi(v)
 		seeds = append(seeds, v_int)
 	}
 	
-	// fmt.Println(seeds)
 	
 	for scanner.Scan() {
 		line := scanner.Text()
@@ -52,52 +51,71 @@ func main() {
 		lineCount += 1
 	}
 
-	seedIterations := 0
-	mapIterations := 0
-	rowIterations := 0
-	currentNumberCheckIterations := 0
-	currentNumberCheckFound := 0
-
 	
-	lowest_location_number := -1
-	// var seeds_part2 []int
+	// lowest_location_number := -1
 	for i := 0; i < len(seeds); i+=2 {
-		fmt.Println("New seed range : ", (i+2)/2, "/", len(seeds)/2, " | ", seeds[i], seeds[i+1])
-		for j := seeds[i]; j <= seeds[i] + seeds[i+1]; j++ {
-			// seedIterations ++
-			currentNumber := j
-			for _, currentMap := range maps {
-				// mapIterations ++
-				for _, row := range currentMap.table {
-					// rowIterations ++
-					// rowEnd := row[1] + row[2]
-					if currentNumber >= row[1] {
-						// currentNumberCheckIterations ++
-						if currentNumber <= row[3] {
-							// currentNumberCheckFound ++
-							currentNumber = row[0] + (currentNumber - row[1])
-							break
-						}
-					}
-				}
-			}
-			if currentNumber < lowest_location_number || lowest_location_number == -1 {
-				lowest_location_number = currentNumber
-				fmt.Println("New lowest number found : ", currentNumber)
-			}
-		// }
-		}
+		seedsP2 = append(seedsP2, [2]int{seeds[i], seeds[i] + seeds[i+1]})
 	}
 
+	// fmt.Println(seedsP2)
 
-	fmt.Println("Seed iterations : ", seedIterations, " | Map iterations : ", mapIterations, " | Row iterations : ", rowIterations, " | currentNumber check 1 : ", currentNumberCheckIterations, " | currentNumber check 2 : ", currentNumberCheckFound)
+	for _, currentMap := range maps {
+		fmt.Println(currentMap.source, currentMap.destination)
 
+		var new [][2]int
+		for len(seedsP2) > 0 {
+			seed := seedsP2[0]
+			// fmt.Println(len(seedsP2))
+			if len(seedsP2) > 0 {
+				seedsP2 = seedsP2[1:]
+			}
+			matched := false
+
+			for _, row := range currentMap.table {
+				overlapStart := max(seed[0], row[1])
+				overlapEnd := min(seed[1], row[1] + row[2])
+				if overlapStart < overlapEnd {
+					new = append(new, [2]int{overlapStart - row[1] + row[0], overlapEnd - row[1] + row[0]})
+					if overlapStart > seed[0] {
+						seedsP2 = append(seedsP2, [2]int{ seed[0], overlapStart})
+					}
+					if overlapEnd < seed[1] {
+						seedsP2 = append(seedsP2, [2]int{ overlapEnd, seed[1]})
+					}
+					matched = true
+					break
+				}
+			}
+			if !matched {
+				new = append(new, seed)
+			}
+		}
+		seedsP2 = new
+		
+	}
+	lowest_location_number := seedsP2[0][0]
+	for _, seed := range seedsP2 {
+		if seed[0] < lowest_location_number {
+			lowest_location_number = seed[0]
+		}
+	}
 	fmt.Println(lowest_location_number)
-}
+	// for i := 0; i < len(seeds); i+=2 {
+	// 	fmt.Println("New seed range : ", (i+2)/2, "/", len(seeds)/2, " | ", seeds[i], seeds[i+1])
+	// 	for j := seeds[i]; j <= seeds[i] + seeds[i+1]; j++ {
+	// 		currentNumber := applyMaps(j, maps)
+			
+	// 		if currentNumber < lowest_location_number || lowest_location_number == -1 {
+	// 			lowest_location_number = currentNumber
+	// 			fmt.Println("New lowest number found : ", currentNumber)
+	// 		}
+	// 	// }
+	// 	}
+	// }
 
-// func processValueTable(table [][3]int, input int) int {
-	
-// }
+
+	// fmt.Println(lowest_location_number)
+}
 
 func strToInt(str string) int {
 	i, err := strconv.Atoi(str)
@@ -107,12 +125,18 @@ func strToInt(str string) int {
 	return i
 }
 
-func findMapBySource(source string, mapArray []MapTable) (MapTable) {
-	for _, m := range mapArray {
-		if m.source == source {
-			return m
+func applyMaps(seed int, maps []MapTable) int {
+	currentNumber := seed
+	for _, currentMap := range maps {
+		for _, row := range currentMap.table {
+			if currentNumber >= row[1] {
+				if currentNumber <= row[3] {
+					currentNumber = row[0] + (currentNumber - row[1])
+					break
+				}
+			}
 		}
 	}
-	// fmt.Println("Map not found : ", source)
-	return MapTable{}
+	return currentNumber
+
 }
