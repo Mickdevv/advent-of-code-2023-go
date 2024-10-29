@@ -14,3 +14,11 @@ func main() {
 	scanner.Scan()
 	fmt.Println(scanner.Text())
 }
+
+func P1() {
+
+}
+
+func P2() {
+	
+}
