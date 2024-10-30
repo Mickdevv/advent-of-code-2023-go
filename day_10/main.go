@@ -140,7 +140,7 @@ func addCoordinates(pos1 [2]int, pos2 [2]int) [2]int {
 
 // ray casting algorithm
 func rayCastLine(line string) (int) {
-	sideCount := 0
+	insideBoundary := false
 	positionsFound := 0
 
 	specialCharSeq := [2]bool{false, false}
@@ -155,13 +155,13 @@ func rayCastLine(line string) (int) {
 		}
 		if string(c) == "|" {
 			fmt.Println(string(c), 1)
-			sideCount ++
-		} else if (specialCharSeq[0] == true && specialCharSeq[1] == false) && sideCount % 2 == 1 {
+			insideBoundary = !insideBoundary
+		} else if (specialCharSeq[0] == true && specialCharSeq[1] == false) && insideBoundary == true {
 			fmt.Println(string(c), 2)
-			sideCount ++
+			insideBoundary = !insideBoundary
 		}
-		if sideCount > 0 && sideCount % 2 == 1 && !isSpecialChar(string(c)) && string(c) != "|" {
-			fmt.Println(string(c), sideCount)
+		if insideBoundary == true && !isSpecialChar(string(c)) && string(c) != "|" {
+			fmt.Println(string(c), insideBoundary)
 			positionsFound ++
 		}
 	}
