@@ -4,21 +4,29 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"strconv"
+	"strings"
 )
 
 func main() {
+
+	var histories [][]int
 	file, _ := os.Open("day_9/input_test.txt")
 
 	scanner := bufio.NewScanner(file)
 
-	scanner.Scan()
-	fmt.Println(scanner.Text())
-}
 
-func P1() {
+	for scanner.Scan() {
+		line := scanner.Text()
+		var history []int
+		for _, n := range strings.Split(line, " ") {
+			to_add, _ :=  strconv.Atoi(n)
+			history = append(history, to_add)
+		}
+		histories = append(histories, history)
 
-}
+	}
 
-func P2() {
-	
+	fmt.Println(histories)
+
 }
