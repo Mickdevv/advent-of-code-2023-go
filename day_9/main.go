@@ -111,7 +111,7 @@ func findPreviousValue(history []int) int {
 
 		
 	}
-	fmt.Println(history_table)
+	// fmt.Println(history_table)
 
 	return history_table[0][0]
 	
