@@ -49,7 +49,13 @@ func main() {
 }
 
 func P2(startingPoint [2]int, grid []string) {
-	
+	count := 0
+	for i, line := range grid {
+		count += rayCastLine(line)
+		fmt.Println("----", i)
+	}
+
+	fmt.Println(count)
 }
 
 func P1(startingPoint [2]int, grid []string) {
@@ -60,7 +66,6 @@ func P1(startingPoint [2]int, grid []string) {
 	for string(grid[currentPos[1]][currentPos[0]]) != "S" {
 		previousPos, currentPos = findNextMove(currentPos, grid, previousPos)
 		moveCounter ++ 
-		// fmt.Println(moveCounter)
 	}
 	fmt.Println(math.Ceil(float64(moveCounter) / 2))
 
@@ -131,4 +136,42 @@ func isMoveValid(currentPos [2]int, nextCharPos [2]int, nextVal [2][2]int, curre
 
 func addCoordinates(pos1 [2]int, pos2 [2]int) [2]int {
 	return [2]int{pos1[0] + pos2[0], pos1[1] + pos2[1]}
+}
+
+// ray casting algorithm
+func rayCastLine(line string) (int) {
+	sideCount := 0
+	positionsFound := 0
+
+	specialCharSeq := [2]bool{false, false}
+
+	for _, c := range line {
+
+		specialCharSeq[1] = specialCharSeq[0]
+		if isSpecialChar(string(c)) {
+			specialCharSeq[0] = true
+		} else {
+			specialCharSeq[0] = false
+		}
+		if string(c) == "|" {
+			fmt.Println(string(c), 1)
+			sideCount ++
+		} else if (specialCharSeq[0] == true && specialCharSeq[1] == false) && sideCount % 2 == 1 {
+			fmt.Println(string(c), 2)
+			sideCount ++
+		}
+		if sideCount > 0 && sideCount % 2 == 1 && !isSpecialChar(string(c)) && string(c) != "|" {
+			fmt.Println(string(c), sideCount)
+			positionsFound ++
+		}
+	}
+	return positionsFound
+}
+
+func isSpecialChar(char string) bool {
+	if char == "S" ||char == "-" ||char == "L" ||char == "J" ||char == "F" ||char == "7" {
+		return true
+	} else {
+		return false
+	}
 }
