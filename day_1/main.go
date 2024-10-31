@@ -18,7 +18,6 @@ func main() {
 		log.Fatal(err)
 	}
 	
-
 	scanner := bufio.NewScanner(file)
 
 	total := 0
@@ -52,7 +51,6 @@ func main() {
 		fmt.Printf("%s, %s, %d, %d\n", line_slice, line, digits, total)
 	}
 	fmt.Println(total)
-	
 }
 
 func extractDigits(textLine string) int {

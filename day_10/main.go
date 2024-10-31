@@ -51,7 +51,15 @@ func main() {
 func P2(startingPoint [2]int, grid []string) {
 	count := 0
 	for i, line := range grid {
-		count += rayCastLine(line)
+		lineAbove := ""
+		lineBelow := ""
+		if i > 0 {
+			lineAbove = grid[i-1]
+		}
+		if i < len(grid)-2 {
+			lineAbove = grid[i+1]
+		}
+		count += rayCastLine(lineAbove, line, lineBelow)
 		fmt.Println("----", i)
 	}
 
@@ -139,13 +147,15 @@ func addCoordinates(pos1 [2]int, pos2 [2]int) [2]int {
 }
 
 // ray casting algorithm
-func rayCastLine(line string) (int) {
+func rayCastLine(lineAbove string, line string, lineBelow string) (int) {
 	insideBoundary := false
 	positionsFound := 0
 
 	specialCharSeq := [2]bool{false, false}
 
 	for _, c := range line {
+
+		sChars := [2]string{"", ""}
 
 		specialCharSeq[1] = specialCharSeq[0]
 		if isSpecialChar(string(c)) {
@@ -154,11 +164,15 @@ func rayCastLine(line string) (int) {
 			specialCharSeq[0] = false
 		}
 		if string(c) == "|" {
-			fmt.Println(string(c), 1)
 			insideBoundary = !insideBoundary
-		} else if (specialCharSeq[0] == true && specialCharSeq[1] == false) && insideBoundary == true {
-			fmt.Println(string(c), 2)
-			insideBoundary = !insideBoundary
+		} else if (specialCharSeq[0] == true && specialCharSeq[1] == false) {
+			sChars[0] = string(c)
+		}else if (specialCharSeq[0] == false && specialCharSeq[1] == true) {
+			sChars[1] = string(c)
+			if sChars != [2]string{"L", "J"} && sChars != [2]string{"F", "7"} && sChars != [2]string{"S", "7"} && sChars != [2]string{"F", "S"}  && sChars != [2]string{"S", "J"} && sChars != [2]string{"L", "S"} {
+				insideBoundary = !insideBoundary
+				sChars = [2]string{"", ""}
+			}
 		}
 		if insideBoundary == true && !isSpecialChar(string(c)) && string(c) != "|" {
 			fmt.Println(string(c), insideBoundary)
@@ -174,4 +188,22 @@ func isSpecialChar(char string) bool {
 	} else {
 		return false
 	}
+}
+
+func isCharSequenceBoundary(lineAbove string, line string, lineBelow string, sChars [2]string, i int) bool {
+	if sChars == [2]string{"L", "J"} || sChars == [2]string{"F", "7"} {
+		return false
+	}	else if sChars == [2]string{"F", "J"} || sChars == [2]string{"L", "7"} {
+		return true
+	} else if sChars[0] == "S" {
+		if (sChars[1] == "J" && string(lineAbove[i]) == "|") || (sChars[1] == "J" && string(lineAbove[i]) == "F") || (sChars[1] == "J" && string(lineAbove[i]) == "7")  {
+			return true
+		}
+	} else if sChars[1] == "S" {
+		if (sChars[0] == "J" && string(lineAbove[i]) == "|") || (sChars[0] == "J" && string(lineAbove[i]) == "F") || (sChars[0] == "J" && string(lineAbove[i]) == "7")  {
+			return true
+		}
+	}
+	log.Fatal("Something went wrong isCharSequenceBoundary")
+	return false
 }
