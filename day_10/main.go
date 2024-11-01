@@ -41,14 +41,14 @@ func main() {
 		startingPointY ++
 	}
 
-	P1(startingPoint, grid)
+	shapePoints := P1(startingPoint, grid)
 	
-	P2(startingPoint, grid)
+	P2(startingPoint, grid, shapePoints)
 
 
 }
 
-func P2(startingPoint [2]int, grid []string) {
+func P2(startingPoint [2]int, grid []string, shapePoints [][2]int) {
 	count := 0
 	for i, line := range grid {
 		lineAbove := ""
@@ -59,23 +59,28 @@ func P2(startingPoint [2]int, grid []string) {
 		if i < len(grid)-2 {
 			lineAbove = grid[i+1]
 		}
-		count += rayCastLine(lineAbove, line, lineBelow)
+		count += rayCastLine(lineAbove, line, lineBelow, shapePoints, i)
 		fmt.Println("----", i)
 	}
 
 	fmt.Println(count)
 }
 
-func P1(startingPoint [2]int, grid []string) {
+func P1(startingPoint [2]int, grid []string) [][2]int {
+	var shapePoints [][2]int
 	moveCounter := 1
 	previousPos, currentPos := findFirstMove(startingPoint, grid, startingPoint)
-	// fmt.Println(previousPos, currentPos)
+	shapePoints = append(shapePoints, previousPos)
+	shapePoints = append(shapePoints, currentPos)
 	
 	for string(grid[currentPos[1]][currentPos[0]]) != "S" {
 		previousPos, currentPos = findNextMove(currentPos, grid, previousPos)
+		shapePoints = append(shapePoints, currentPos)
 		moveCounter ++ 
 	}
 	fmt.Println(math.Ceil(float64(moveCounter) / 2))
+
+	return shapePoints
 
 }
 
@@ -133,8 +138,6 @@ func isMoveValid(currentPos [2]int, nextCharPos [2]int, nextVal [2][2]int, curre
 	m1 := addCoordinates(nextCharPos, nextVal[0])
 	m2 := addCoordinates(nextCharPos, nextVal[1])
 
-
-
 	if currentPos == m1 || currentPos == m2 {
 		return true
 	}
@@ -147,34 +150,38 @@ func addCoordinates(pos1 [2]int, pos2 [2]int) [2]int {
 }
 
 // ray casting algorithm
-func rayCastLine(lineAbove string, line string, lineBelow string) (int) {
+func rayCastLine(lineAbove string, line string, lineBelow string, shapePoints [][2]int, lineIndex int) (int) {
 	insideBoundary := false
 	positionsFound := 0
+	partOfShape := false
 
 	specialCharSeq := [2]bool{false, false}
 
-	for _, c := range line {
+	for i, c := range line {
 
 		sChars := [2]string{"", ""}
-
 		specialCharSeq[1] = specialCharSeq[0]
-		if isSpecialChar(string(c)) {
-			specialCharSeq[0] = true
-		} else {
-			specialCharSeq[0] = false
+		partOfShape := false
+
+		if isSpecialChar(string(c)) || string(c) == "|" {
+			partOfShape = isPartOfShape(shapePoints, [2]int{i, lineIndex})
 		}
-		if string(c) == "|" {
-			insideBoundary = !insideBoundary
-		} else if (specialCharSeq[0] == true && specialCharSeq[1] == false) {
-			sChars[0] = string(c)
-		}else if (specialCharSeq[0] == false && specialCharSeq[1] == true) {
-			sChars[1] = string(c)
-			if sChars != [2]string{"L", "J"} && sChars != [2]string{"F", "7"} && sChars != [2]string{"S", "7"} && sChars != [2]string{"F", "S"}  && sChars != [2]string{"S", "J"} && sChars != [2]string{"L", "S"} {
+
+		if partOfShape {
+			if string(c) != "-" && isSpecialChar(string(c)){
+				sChars[1] = sChars[0]
+				sChars[0] = string(c)
+			} 
+
+
+
+			if string(c) == "|" || isCharSequenceBoundary(lineAbove, line, lineBelow, sChars) {
 				insideBoundary = !insideBoundary
-				sChars = [2]string{"", ""}
-			}
+			} 
 		}
-		if insideBoundary == true && !isSpecialChar(string(c)) && string(c) != "|" {
+		
+
+		if insideBoundary && !isSpecialChar(string(c)) && string(c) != "|" {
 			fmt.Println(string(c), insideBoundary)
 			positionsFound ++
 		}
@@ -190,20 +197,45 @@ func isSpecialChar(char string) bool {
 	}
 }
 
-func isCharSequenceBoundary(lineAbove string, line string, lineBelow string, sChars [2]string, i int) bool {
+func isCharSequenceBoundary(lineAbove string, line string, lineBelow string, sChars [2]string) bool {
+	var startIndex int
+	fmt.Println(sChars)
+	if sChars[0] == "S" || sChars[1] == "S" {
+		startIndex = findCharInLine(line, "S") 
+	}
+
 	if sChars == [2]string{"L", "J"} || sChars == [2]string{"F", "7"} {
 		return false
-	}	else if sChars == [2]string{"F", "J"} || sChars == [2]string{"L", "7"} {
+	} else if sChars == [2]string{"F", "J"} || sChars == [2]string{"L", "7"} {
 		return true
-	} else if sChars[0] == "S" {
-		if (sChars[1] == "J" && string(lineAbove[i]) == "|") || (sChars[1] == "J" && string(lineAbove[i]) == "F") || (sChars[1] == "J" && string(lineAbove[i]) == "7")  {
+	} else if sChars[0] == "S" &&
+		((sChars[1] == "7" && ((string(lineAbove[startIndex]) == "|") || string(lineAbove[startIndex]) == "7" || string(lineAbove[startIndex]) == "F")) || 
+		(sChars[1] == "J" && ((string(lineBelow[startIndex]) == "|") || string(lineBelow[startIndex]) == "L" || string(lineBelow[startIndex]) == "J"))) {
 			return true
-		}
-	} else if sChars[1] == "S" {
-		if (sChars[0] == "J" && string(lineAbove[i]) == "|") || (sChars[0] == "J" && string(lineAbove[i]) == "F") || (sChars[0] == "J" && string(lineAbove[i]) == "7")  {
+	} else if sChars[1] == "S" &&
+		((sChars[0] == "F" && ((string(lineAbove[startIndex]) == "|") || string(lineAbove[startIndex]) == "7" || string(lineAbove[startIndex]) == "F")) || 
+		(sChars[0] == "L" && ((string(lineBelow[startIndex]) == "|") || string(lineBelow[startIndex]) == "L" || string(lineBelow[startIndex]) == "J"))) {
+			return true
+	} else {
+		return false
+	}
+}
+
+func isPartOfShape(shapePoints [][2]int, point [2]int) bool {
+	for _, v := range shapePoints {
+		if v == point {
 			return true
 		}
 	}
-	log.Fatal("Something went wrong isCharSequenceBoundary")
 	return false
+
+}
+
+func findCharInLine(line string, char string) int {
+	for i, c := range line {
+		if char == string(c) {
+			return i
+		}
+	}
+	return -1
 }
