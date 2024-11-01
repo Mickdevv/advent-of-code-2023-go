@@ -24,6 +24,7 @@ func main() {
 
 	var grid []string
 	file, _ := os.Open("day_10/input_test.txt")
+	// file, _ := os.Open("day_10/input.txt")
 	scanner := bufio.NewScanner(file)
 
 	startingPoint := [2]int{0,0}
@@ -44,8 +45,6 @@ func main() {
 	shapePoints := P1(startingPoint, grid)
 	
 	P2(startingPoint, grid, shapePoints)
-
-
 }
 
 func P2(startingPoint [2]int, grid []string, shapePoints [][2]int) {
@@ -57,10 +56,14 @@ func P2(startingPoint [2]int, grid []string, shapePoints [][2]int) {
 			lineAbove = grid[i-1]
 		}
 		if i < len(grid)-2 {
-			lineAbove = grid[i+1]
+			lineBelow = grid[i+1]
 		}
-		count += rayCastLine(lineAbove, line, lineBelow, shapePoints, i)
+		// fmt.Println(lineAbove)
+		// fmt.Println(line)
+		// fmt.Println(lineBelow)
 		fmt.Println("----", i)
+		fmt.Println()
+		count += rayCastLine(lineAbove, line, lineBelow, shapePoints, i)
 	}
 
 	fmt.Println(count)
@@ -155,34 +158,66 @@ func rayCastLine(lineAbove string, line string, lineBelow string, shapePoints []
 	positionsFound := 0
 	partOfShape := false
 
-	specialCharSeq := [2]bool{false, false}
+	specialCharSeq := false
+	sChars := [2]string{"", ""}
 
 	for i, c := range line {
+		char := string(c)
+		partOfShape = false
 
-		sChars := [2]string{"", ""}
-		specialCharSeq[1] = specialCharSeq[0]
-		partOfShape := false
-
-		if isSpecialChar(string(c)) || string(c) == "|" {
+		if isSpecialChar(char) || char == "|" {
 			partOfShape = isPartOfShape(shapePoints, [2]int{i, lineIndex})
 		}
 
 		if partOfShape {
-			if string(c) != "-" && isSpecialChar(string(c)){
-				sChars[1] = sChars[0]
-				sChars[0] = string(c)
-			} 
 
-
-
-			if string(c) == "|" || isCharSequenceBoundary(lineAbove, line, lineBelow, sChars) {
+			if char == "S" {
+				if len(lineBelow) > 0 && len(lineAbove) > 0 && isVerticalMove(string(lineAbove[i])) && isVerticalMove(string(lineBelow[i])) {
+					insideBoundary = !insideBoundary
+					// fmt.Println(sChars)
+				} else if len(lineAbove) > 0 && isVerticalMove(string(lineAbove[i])) && specialCharSeq == false {
+					specialCharSeq = true
+					sChars[0] = "L"
+					// fmt.Println(sChars)
+				} else if len(lineBelow) > 0 && isVerticalMove(string(lineBelow[i])) && specialCharSeq == false {
+					specialCharSeq = true
+					sChars[0] = "F"
+					// fmt.Println(sChars)
+				} else if len(lineAbove) > 0 && isVerticalMove(string(lineAbove[i])) && specialCharSeq == true {
+					specialCharSeq = false
+					sChars[1] = "J"
+					// fmt.Println(sChars)
+				} else if len(lineBelow) > 0 && isVerticalMove(string(lineBelow[i])) && specialCharSeq == true {
+					specialCharSeq = false
+					sChars[1] = "7"
+					// fmt.Println(sChars)
+				}
+			} else if char == "|" {
 				insideBoundary = !insideBoundary
-			} 
+			} else if isSpecialChar(char) && char != "S" {
+				if char == "L" || char == "F" {
+					specialCharSeq = true
+					sChars[0] = char
+					// fmt.Println(sChars)
+				} else if char == "J" || char == "7" {
+					specialCharSeq = false
+					sChars[1] = char
+					// fmt.Println(sChars)
+				}
+			}
+			if sChars[0] != "" && sChars[1] != "" {
+				fmt.Println(line)
+				fmt.Println(sChars)
+				fmt.Println(isCharSequenceBoundary(sChars))
+				if isCharSequenceBoundary(sChars) {
+					insideBoundary = !insideBoundary
+				}
+				sChars = [2]string{"", ""}
+			}
 		}
 		
-
-		if insideBoundary && !isSpecialChar(string(c)) && string(c) != "|" {
-			fmt.Println(string(c), insideBoundary)
+		if insideBoundary && !isSpecialChar(char) && char != "|" {
+			fmt.Println("test", char, insideBoundary)
 			positionsFound ++
 		}
 	}
@@ -197,26 +232,15 @@ func isSpecialChar(char string) bool {
 	}
 }
 
-func isCharSequenceBoundary(lineAbove string, line string, lineBelow string, sChars [2]string) bool {
-	var startIndex int
-	fmt.Println(sChars)
-	if sChars[0] == "S" || sChars[1] == "S" {
-		startIndex = findCharInLine(line, "S") 
-	}
+func isCharSequenceBoundary(sChars [2]string) bool {
+	// fmt.Println(sChars)
 
 	if sChars == [2]string{"L", "J"} || sChars == [2]string{"F", "7"} {
 		return false
 	} else if sChars == [2]string{"F", "J"} || sChars == [2]string{"L", "7"} {
 		return true
-	} else if sChars[0] == "S" &&
-		((sChars[1] == "7" && ((string(lineAbove[startIndex]) == "|") || string(lineAbove[startIndex]) == "7" || string(lineAbove[startIndex]) == "F")) || 
-		(sChars[1] == "J" && ((string(lineBelow[startIndex]) == "|") || string(lineBelow[startIndex]) == "L" || string(lineBelow[startIndex]) == "J"))) {
-			return true
-	} else if sChars[1] == "S" &&
-		((sChars[0] == "F" && ((string(lineAbove[startIndex]) == "|") || string(lineAbove[startIndex]) == "7" || string(lineAbove[startIndex]) == "F")) || 
-		(sChars[0] == "L" && ((string(lineBelow[startIndex]) == "|") || string(lineBelow[startIndex]) == "L" || string(lineBelow[startIndex]) == "J"))) {
-			return true
 	} else {
+		fmt.Println("Something went wrong", sChars)
 		return false
 	}
 }
@@ -238,4 +262,11 @@ func findCharInLine(line string, char string) int {
 		}
 	}
 	return -1
+}
+
+func isVerticalMove(c string) bool {
+	if isSpecialChar(c) && c!= "-" {
+		return true
+	}
+	return false
 }
