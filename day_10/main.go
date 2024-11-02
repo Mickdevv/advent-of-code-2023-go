@@ -45,6 +45,8 @@ func main() {
 	shapePoints := P1(startingPoint, grid)
 	
 	P2(startingPoint, grid, shapePoints)
+
+
 }
 
 func P2(startingPoint [2]int, grid []string, shapePoints [][2]int) {
@@ -61,9 +63,10 @@ func P2(startingPoint [2]int, grid []string, shapePoints [][2]int) {
 		// fmt.Println(lineAbove)
 		// fmt.Println(line)
 		// fmt.Println(lineBelow)
-		fmt.Println("----", i)
-		fmt.Println()
+		// fmt.Println("----", i)
+		// fmt.Println()
 		count += rayCastLine(lineAbove, line, lineBelow, shapePoints, i)
+		// fmt.Println("----", i)
 	}
 
 	fmt.Println(count)
@@ -211,16 +214,16 @@ func rayCastLine(lineAbove string, line string, lineBelow string, shapePoints []
 				if isCharSequenceBoundary(sChars) {
 					insideBoundary = !insideBoundary
 				}
-				fmt.Println(sChars, isCharSequenceBoundary(sChars), insideBoundary)
+				// fmt.Println(sChars, isCharSequenceBoundary(sChars), insideBoundary)
 				sChars = [2]string{"", ""}
 			}
 		}
 		
 		if insideBoundary && !partOfShape {
-			fmt.Println(lineAbove)
-			fmt.Println(line, char, insideBoundary)
-			fmt.Println(lineBelow)
-			fmt.Println()
+			// fmt.Println(lineAbove)
+			// fmt.Println(line, char, insideBoundary)
+			// fmt.Println(lineBelow)
+			// fmt.Println()
 			positionsFound ++
 		}
 	}
@@ -256,15 +259,6 @@ func isPartOfShape(shapePoints [][2]int, point [2]int) bool {
 	}
 	return false
 
-}
-
-func findCharInLine(line string, char string) int {
-	for i, c := range line {
-		if char == string(c) {
-			return i
-		}
-	}
-	return -1
 }
 
 func isUpMove(c string) bool {
